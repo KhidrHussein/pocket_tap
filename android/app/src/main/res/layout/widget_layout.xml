@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#000000">
+
+    <TextView
+        android:id="@+id/tv_balance"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerInParent="true"
+        android:textColor="#FFFFFF"
+        android:textSize="24sp"
+        android:textStyle="bold"
+        android:text="0.00" />
+
+    <Button
+        android:id="@+id/btn_add_income"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentStart="true"
+        android:layout_margin="8dp"
+        android:backgroundTint="#10B981"
+        android:textColor="#FFFFFF"
+        android:text="+" />
+
+    <Button
+        android:id="@+id/btn_add_expense"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentEnd="true"
+        android:layout_margin="8dp"
+        android:backgroundTint="#EF4444"
+        android:textColor="#FFFFFF"
+        android:text="-" />
+
+    <View
+        android:id="@+id/burn_indicator"
+        android:layout_width="match_parent"
+        android:layout_height="2dp"
+        android:layout_alignParentBottom="true"
+        android:background="#333333" />
+</RelativeLayout>
