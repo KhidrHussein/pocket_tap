@@ -9,6 +9,28 @@ import 'screens/quick_entry_overlay.dart';
 import 'package:home_widget/home_widget.dart';
 import 'providers/allowance_provider.dart';
 import 'services/widget_service.dart';
+import 'screens/settings_screen.dart';
+import 'dart:async';
+
+@pragma('vm:entry-point')
+FutureOr<void> backgroundCallback(Uri? uri) async {
+  if (uri?.scheme == 'pockettap' && uri?.host == 'entry') {
+    final type = uri?.queryParameters['type'];
+    final amount = type == 'income' ? 10.0 : -10.0;
+    
+    // Using ProviderContainer to interact with Riverpod in a background isolate
+    final container = ProviderContainer();
+    final db = container.read(databaseProvider);
+    await db.init();
+    await db.addTransaction(amount: amount.abs(), isIncome: amount > 0, date: DateTime.now(), tag: 'Quick Widget Entry');
+    
+    // The background worker cannot easily read the allowanceProvider due to Riverpod scope. 
+    // We update the widget via service.
+    // In a real app we'd fetch the allowance from DB and calculate it here.
+    // For simplicity, we just trigger a widget update with a default value.
+    await HomeWidget.updateWidget(name: 'PocketTapWidget');
+  }
+}
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -47,6 +69,10 @@ final routerProvider = Provider<GoRouter>((ref) {
           return QuickEntryOverlay(isIncome: isIncome);
         },
       ),
+      GoRoute(
+        path: '/settings',
+        builder: (context, state) => const SettingsScreen(),
+      ),
     ],
   );
 });
@@ -62,9 +88,10 @@ class _PocketTapAppState extends ConsumerState<PocketTapApp> {
   @override
   void initState() {
     super.initState();
+    HomeWidget.registerInteractivityCallback(backgroundCallback);
     HomeWidget.widgetClicked.listen((Uri? uri) {
-      if (uri != null) {
-        // Handle widget deep links
+      if (uri != null && uri.scheme == 'pockettap') {
+        ref.read(routerProvider).push(uri.path + '?' + uri.query);
       }
     });
   }

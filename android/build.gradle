@@ -14,6 +14,7 @@ subprojects {
 
     project.plugins.withId("com.android.library") {
         project.android {
+            compileSdkVersion 35
             if (namespace == null) {
                 namespace "com.example." + project.name.replace('-', '_')
             }

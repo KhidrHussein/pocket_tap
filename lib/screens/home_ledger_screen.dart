@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:intl/intl.dart';
 import '../providers/database_provider.dart';
 import '../providers/allowance_provider.dart';
+import 'package:go_router/go_router.dart';
 
 class HomeLedgerScreen extends ConsumerWidget {
   const HomeLedgerScreen({super.key});
@@ -23,7 +24,7 @@ class HomeLedgerScreen extends ConsumerWidget {
           IconButton(
             icon: const Icon(Icons.settings),
             onPressed: () {
-              // TODO: Settings screen
+              context.push('/settings');
             },
           )
         ],
