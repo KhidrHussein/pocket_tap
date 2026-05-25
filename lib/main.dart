@@ -17,6 +17,7 @@ import 'package:isar/isar.dart';
 
 @pragma('vm:entry-point')
 FutureOr<void> backgroundCallback(Uri? uri) async {
+  WidgetsFlutterBinding.ensureInitialized();
   if (uri?.scheme == 'pockettap' && uri?.host == 'entry') {
     final type = uri?.queryParameters['type'];
     final amount = type == 'income' ? 10.0 : -10.0;
@@ -40,6 +41,7 @@ FutureOr<void> backgroundCallback(Uri? uri) async {
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await HomeWidget.setAppGroupId('group.com.khidrhussein.pockettap');
   runApp(const ProviderScope(child: PocketTapApp()));
 }
 
