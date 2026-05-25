@@ -102,23 +102,28 @@ class _PocketTapAppState extends ConsumerState<PocketTapApp> {
         ref.read(routerProvider).push(uri.path + '?' + uri.query);
       }
     });
+
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      final config = await ref.read(userConfigProvider.future);
+      if (config != null && config.isOnboarded) {
+        final allowance = await ref.read(allowanceProvider.future);
+        final dailyBudget = config.monthlyBudget / 30;
+        WidgetService.updateWidget(allowance, dailyBudget);
+      }
+    });
   }
 
   @override
   Widget build(BuildContext context) {
-    ref.listen(
-      allowanceProvider,
-      (previous, next) {
-        if (next.hasValue) {
-          final config = ref.read(userConfigProvider).value;
-          if (config != null && config.isOnboarded) {
-            final dailyBudget = config.monthlyBudget / 30;
-            WidgetService.updateWidget(next.value!, dailyBudget);
-          }
+    ref.listen(allowanceProvider, (previous, next) {
+      if (next.hasValue) {
+        final config = ref.read(userConfigProvider).value;
+        if (config != null && config.isOnboarded) {
+          final dailyBudget = config.monthlyBudget / 30;
+          WidgetService.updateWidget(next.value!, dailyBudget);
         }
-      },
-      fireImmediately: true,
-    );
+      }
+    });
 
     final router = ref.watch(routerProvider);
     return MaterialApp.router(
