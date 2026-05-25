@@ -115,7 +115,7 @@ class _PocketTapAppState extends ConsumerState<PocketTapApp> {
 
     HomeWidget.initiallyLaunchedFromHomeWidget().then((Uri? uri) {
       if (uri != null && uri.scheme == 'pockettap' && uri.host == 'entry') {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
+        Future.delayed(const Duration(milliseconds: 500), () {
           ref.read(routerProvider).push('/entry?${uri.query}');
         });
       }
