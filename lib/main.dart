@@ -106,15 +106,19 @@ class _PocketTapAppState extends ConsumerState<PocketTapApp> {
 
   @override
   Widget build(BuildContext context) {
-    ref.listen(allowanceProvider, (previous, next) {
-      if (next.hasValue) {
-        final config = ref.read(userConfigProvider).value;
-        if (config != null && config.isOnboarded) {
-          final dailyBudget = config.monthlyBudget / 30; // Approximate daily average for color threshold
-          WidgetService.updateWidget(next.value!, dailyBudget);
+    ref.listen(
+      allowanceProvider,
+      (previous, next) {
+        if (next.hasValue) {
+          final config = ref.read(userConfigProvider).value;
+          if (config != null && config.isOnboarded) {
+            final dailyBudget = config.monthlyBudget / 30;
+            WidgetService.updateWidget(next.value!, dailyBudget);
+          }
         }
-      }
-    });
+      },
+      fireImmediately: true,
+    );
 
     final router = ref.watch(routerProvider);
     return MaterialApp.router(
