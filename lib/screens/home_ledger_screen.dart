@@ -15,7 +15,7 @@ class HomeLedgerScreen extends ConsumerWidget {
     final transactionsAsync = ref.watch(transactionsProvider);
     final allowanceAsync = ref.watch(allowanceProvider);
 
-    final currencyFormat = NumberFormat.currency(symbol: '₦', decimalDigits: 2);
+    final currencyFormat = NumberFormat.simpleCurrency(locale: Platform.localeName);
 
     return Scaffold(
       appBar: AppBar(

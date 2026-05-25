@@ -4,7 +4,7 @@ import 'dart:io';
 
 class WidgetService {
   static Future<void> updateWidget(double availableBalance, double dailyBudget) async {
-    final currencyFormat = NumberFormat.currency(symbol: '₦', decimalDigits: 2);
+    final currencyFormat = NumberFormat.simpleCurrency(locale: Platform.localeName);
     final balanceStr = currencyFormat.format(availableBalance);
     
     int burnColor = 0xFF333333; // dark gray

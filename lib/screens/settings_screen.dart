@@ -4,6 +4,8 @@ import '../providers/database_provider.dart';
 import '../models/user_config.dart';
 import 'package:go_router/go_router.dart';
 import 'package:isar/isar.dart';
+import 'dart:io';
+import 'package:intl/intl.dart';
 
 class SettingsScreen extends ConsumerStatefulWidget {
   const SettingsScreen({super.key});
@@ -28,6 +30,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final currencySymbol = NumberFormat.simpleCurrency(locale: Platform.localeName).currencySymbol;
     return Scaffold(
       appBar: AppBar(title: const Text("Settings")),
       body: Padding(
@@ -40,9 +43,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             TextField(
               controller: _budgetController,
               keyboardType: const TextInputType.numberWithOptions(decimal: true),
-              decoration: const InputDecoration(
-                prefixText: "₦ ",
-                border: OutlineInputBorder(),
+              decoration: InputDecoration(
+                prefixText: "$currencySymbol ",
+                border: const OutlineInputBorder(),
               ),
             ),
             const Spacer(),
