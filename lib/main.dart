@@ -56,6 +56,13 @@ void main() async {
 final routerProvider = Provider<GoRouter>((ref) {
   return GoRouter(
     initialLocation: '/',
+    redirect: (context, state) {
+      if (state.uri.scheme == 'pockettap' && state.uri.host == 'entry') {
+        // Map the custom scheme directly to the correct path natively
+        return '/entry?${state.uri.query}';
+      }
+      return null;
+    },
     routes: [
       GoRoute(
         path: '/',
@@ -105,21 +112,6 @@ class _PocketTapAppState extends ConsumerState<PocketTapApp> {
   void initState() {
     super.initState();
     HomeWidget.registerInteractivityCallback(backgroundCallback);
-    HomeWidget.widgetClicked.listen((Uri? uri) {
-      if (uri != null && uri.scheme == 'pockettap') {
-        final path = uri.host.isNotEmpty ? '/${uri.host}' : uri.path;
-        ref.read(routerProvider).push('$path?${uri.query}');
-      }
-    });
-
-    HomeWidget.initiallyLaunchedFromHomeWidget().then((Uri? uri) {
-      if (uri != null && uri.scheme == 'pockettap') {
-        final path = uri.host.isNotEmpty ? '/${uri.host}' : uri.path;
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          ref.read(routerProvider).push('$path?${uri.query}');
-        });
-      }
-    });
 
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       final config = await ref.read(userConfigProvider.future);
