@@ -35,7 +35,15 @@ FutureOr<void> backgroundCallback(Uri? uri) async {
       await isar.transactions.put(tx);
     });
     
-    await HomeWidget.updateWidget(name: 'PocketTapWidget');
+    // Invalidate so we fetch the newly inserted transaction
+    container.invalidate(transactionsProvider);
+    
+    final config = await container.read(userConfigProvider.future);
+    final allowance = await container.read(allowanceProvider.future);
+    
+    if (config != null) {
+      await WidgetService.updateWidget(allowance, config.monthlyBudget / 30);
+    }
   }
 }
 
