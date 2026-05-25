@@ -112,6 +112,15 @@ class _PocketTapAppState extends ConsumerState<PocketTapApp> {
       }
     });
 
+    HomeWidget.initiallyLaunchedFromHomeWidget().then((Uri? uri) {
+      if (uri != null && uri.scheme == 'pockettap') {
+        final path = uri.host.isNotEmpty ? '/${uri.host}' : uri.path;
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          ref.read(routerProvider).push('$path?${uri.query}');
+        });
+      }
+    });
+
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       final config = await ref.read(userConfigProvider.future);
       if (config != null && config.isOnboarded) {

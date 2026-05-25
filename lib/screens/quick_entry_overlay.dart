@@ -76,7 +76,7 @@ class _QuickEntryOverlayState extends ConsumerState<QuickEntryOverlay> {
               const SizedBox(height: 48),
               allowanceAsync.when(
                 data: (allowance) {
-                  final currencyFormat = NumberFormat.simpleCurrency(locale: Platform.localeName);
+                  final currencyFormat = NumberFormat.currency(symbol: '₦', decimalDigits: 2);
                   return Column(
                     children: [
                       const Text("New Balance", style: TextStyle(color: Colors.white54, fontSize: 16)),
