@@ -50,7 +50,7 @@ FutureOr<void> backgroundCallback(Uri? uri) async {
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await HomeWidget.setAppGroupId('group.com.khidrhussein.pockettap');
+  await HomeWidget.setAppGroupId('group.com.khidr.pockettap');
   runApp(const ProviderScope(child: PocketTapApp()));
 }
 
