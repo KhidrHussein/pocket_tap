@@ -60,6 +60,67 @@ class HomeLedgerScreen extends ConsumerWidget {
     return items;
   }
 
+  void _showRestructureDialog(BuildContext context, WidgetRef ref) {
+    final TextEditingController controller = TextEditingController();
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          backgroundColor: const Color(0xFF1F2937), // Dark Gray
+          title: const Text("Restructure Budget", style: TextStyle(color: Colors.white)),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text("How much extra do you need this month?", style: TextStyle(color: Colors.white70)),
+              const SizedBox(height: 16),
+              TextField(
+                controller: controller,
+                autofocus: true,
+                keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                style: const TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold),
+                decoration: const InputDecoration(
+                  hintText: "20000",
+                  hintStyle: TextStyle(color: Colors.white24),
+                  border: InputBorder.none,
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text("CANCEL", style: TextStyle(color: Colors.white54)),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF10B981)),
+              onPressed: () async {
+                final amount = double.tryParse(controller.text) ?? 0.0;
+                if (amount > 0) {
+                  final isar = await ref.read(isarProvider.future);
+                  final config = await isar.userConfigs.where().findFirst();
+                  if (config != null) {
+                    config.monthlyBudget += amount;
+                    await isar.writeTxn(() async {
+                      await isar.userConfigs.put(config);
+                    });
+                    ref.invalidate(userConfigProvider);
+                    ref.invalidate(allowanceProvider);
+                    ref.invalidate(currentCycleInfoProvider);
+                    if (context.mounted) {
+                      Navigator.pop(context);
+                    }
+                  }
+                }
+              },
+              child: const Text("ADD TO BUDGET", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final cycleInfoAsync = ref.watch(currentCycleInfoProvider);
@@ -100,7 +161,53 @@ class HomeLedgerScreen extends ConsumerWidget {
       ),
       body: Column(
         children: [
-          // Top Header
+          // Debt Mode Escape Hatch
+          allowanceAsync.when(
+            data: (allowance) {
+              if (allowance < 0) {
+                return Container(
+                  width: double.infinity,
+                  color: const Color(0xFF991B1B), // Darker Red for emphasis
+                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Row(
+                        children: [
+                          Icon(Icons.warning_amber_rounded, color: Colors.white, size: 28),
+                          SizedBox(width: 12),
+                          Text("DEBT MODE", style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold, letterSpacing: 1.5)),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        "-${currencyFormat.format(allowance.abs())} to recover",
+                        style: const TextStyle(color: Colors.white, fontSize: 28, fontWeight: FontWeight.bold),
+                      ),
+                      const SizedBox(height: 16),
+                      SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.white,
+                            foregroundColor: const Color(0xFF991B1B),
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                          ),
+                          onPressed: () => _showRestructureDialog(context, ref),
+                          child: const Text("RESTRUCTURE BUDGET", style: TextStyle(fontWeight: FontWeight.bold, letterSpacing: 1.2)),
+                        ),
+                      )
+                    ],
+                  ),
+                );
+              }
+              return const SizedBox();
+            },
+            loading: () => const SizedBox(),
+            error: (_, __) => const SizedBox(),
+          ),
+
+          // Top Header (Normal State)
           Container(
             padding: const EdgeInsets.all(24),
             width: double.infinity,
@@ -124,7 +231,7 @@ class HomeLedgerScreen extends ConsumerWidget {
                     allowanceAsync.when(
                       data: (allowance) {
                         return Text(
-                          "Today's Allowance: ${currencyFormat.format(allowance)}",
+                          allowance < 0 ? "You are overbudget" : "Today's Allowance: ${currencyFormat.format(allowance)}",
                           style: TextStyle(
                             fontSize: 20,
                             color: allowance < 0 ? const Color(0xFFEF4444) : Theme.of(context).primaryColor,

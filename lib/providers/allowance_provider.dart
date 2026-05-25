@@ -10,40 +10,17 @@ final allowanceProvider = FutureProvider<double>((ref) async {
   }
 
   final now = DateTime.now();
-  final resetDay = userConfig.resetDay;
   
-  // Calculate start date of the current cycle
-  DateTime startDate;
-  if (now.day >= resetDay) {
-    startDate = DateTime(now.year, now.month, resetDay);
-  } else {
-    // Previous month
-    int prevMonth = now.month == 1 ? 12 : now.month - 1;
-    int prevYear = now.month == 1 ? now.year - 1 : now.year;
-    int maxDaysInPrevMonth = DateTime(prevYear, prevMonth + 1, 0).day;
-    int actualResetDay = resetDay > maxDaysInPrevMonth ? maxDaysInPrevMonth : resetDay;
-    startDate = DateTime(prevYear, prevMonth, actualResetDay);
-  }
+  // Hard reset on the 1st of the month
+  final startDate = DateTime(now.year, now.month, 1);
+  final endDate = DateTime(now.year, now.month + 1, 1);
 
-  // Calculate end date of the current cycle
-  int nextMonth = startDate.month == 12 ? 1 : startDate.month + 1;
-  int nextYear = startDate.month == 12 ? startDate.year + 1 : startDate.year;
-  int maxDaysInNextMonth = DateTime(nextYear, nextMonth + 1, 0).day;
-  int actualEndResetDay = resetDay > maxDaysInNextMonth ? maxDaysInNextMonth : resetDay;
-  DateTime endDate = DateTime(nextYear, nextMonth, actualEndResetDay);
+  // D_remaining: Days left in the current month (inclusive of today)
+  final totalDaysInMonth = DateTime(now.year, now.month + 1, 0).day;
+  int daysRemaining = totalDaysInMonth - now.day + 1;
+  if (daysRemaining <= 0) daysRemaining = 1; // Failsafe
 
-  int totalDaysInCycle = endDate.difference(startDate).inDays;
-  if (totalDaysInCycle == 0) totalDaysInCycle = 1;
-
-  // elapsed days (including today)
-  int elapsedDays = DateTime(now.year, now.month, now.day)
-      .difference(DateTime(startDate.year, startDate.month, startDate.day))
-      .inDays + 1;
-
-  double baseDaily = userConfig.monthlyBudget / totalDaysInCycle;
-  double accumulatedBase = baseDaily * elapsedDays;
-
-  // Calculate Total I and Total E in the cycle
+  double baseMonthly = userConfig.monthlyBudget;
   double totalIncome = 0;
   double totalExpenses = 0;
 
@@ -58,7 +35,8 @@ final allowanceProvider = FutureProvider<double>((ref) async {
     }
   }
 
-  return accumulatedBase + totalIncome - totalExpenses;
+  // Smoothing Engine Formula: A_d = (B_m + I_total - E_total) / D_remaining
+  return (baseMonthly + totalIncome - totalExpenses) / daysRemaining;
 });
 
 final currentCycleInfoProvider = FutureProvider<Map<String, dynamic>>((ref) async {
@@ -68,31 +46,11 @@ final currentCycleInfoProvider = FutureProvider<Map<String, dynamic>>((ref) asyn
   }
 
   final now = DateTime.now();
-  final resetDay = userConfig.resetDay;
-  
-  DateTime startDate;
-  if (now.day >= resetDay) {
-    startDate = DateTime(now.year, now.month, resetDay);
-  } else {
-    int prevMonth = now.month == 1 ? 12 : now.month - 1;
-    int prevYear = now.month == 1 ? now.year - 1 : now.year;
-    int maxDaysInPrevMonth = DateTime(prevYear, prevMonth + 1, 0).day;
-    int actualResetDay = resetDay > maxDaysInPrevMonth ? maxDaysInPrevMonth : resetDay;
-    startDate = DateTime(prevYear, prevMonth, actualResetDay);
-  }
+  final startDate = DateTime(now.year, now.month, 1);
+  final endDate = DateTime(now.year, now.month + 1, 1);
 
-  int nextMonth = startDate.month == 12 ? 1 : startDate.month + 1;
-  int nextYear = startDate.month == 12 ? startDate.year + 1 : startDate.year;
-  int maxDaysInNextMonth = DateTime(nextYear, nextMonth + 1, 0).day;
-  int actualEndResetDay = resetDay > maxDaysInNextMonth ? maxDaysInNextMonth : resetDay;
-  DateTime endDate = DateTime(nextYear, nextMonth, actualEndResetDay);
-
-  int totalDaysInCycle = endDate.difference(startDate).inDays;
-  if (totalDaysInCycle == 0) totalDaysInCycle = 1;
-
-  int elapsedDays = DateTime(now.year, now.month, now.day)
-      .difference(DateTime(startDate.year, startDate.month, startDate.day))
-      .inDays + 1;
+  final totalDaysInMonth = DateTime(now.year, now.month + 1, 0).day;
+  int elapsedDays = now.day;
 
   final transactions = await ref.watch(transactionsProvider.future);
   double totalIncome = 0;
@@ -113,7 +71,7 @@ final currentCycleInfoProvider = FutureProvider<Map<String, dynamic>>((ref) asyn
 
   return {
     'elapsedDays': elapsedDays,
-    'totalDays': totalDaysInCycle,
+    'totalDays': totalDaysInMonth,
     'remainingBudget': remainingOverall,
   };
 });
