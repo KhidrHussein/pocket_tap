@@ -113,6 +113,14 @@ class _PocketTapAppState extends ConsumerState<PocketTapApp> {
     super.initState();
     HomeWidget.registerInteractivityCallback(backgroundCallback);
 
+    HomeWidget.initiallyLaunchedFromHomeWidget().then((Uri? uri) {
+      if (uri != null && uri.scheme == 'pockettap' && uri.host == 'entry') {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          ref.read(routerProvider).push('/entry?${uri.query}');
+        });
+      }
+    });
+
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       final config = await ref.read(userConfigProvider.future);
       if (config != null && config.isOnboarded) {

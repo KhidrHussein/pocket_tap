@@ -8,6 +8,7 @@ import 'dart:io';
 import 'package:intl/intl.dart';
 import 'package:home_widget/home_widget.dart';
 import '../services/widget_service.dart';
+import 'package:go_router/go_router.dart';
 
 class QuickEntryOverlay extends ConsumerStatefulWidget {
   final bool isIncome;
@@ -57,6 +58,13 @@ class _QuickEntryOverlayState extends ConsumerState<QuickEntryOverlay> {
       setState(() {
         _isSuccess = true;
       });
+      
+      // Auto-dismiss back to dashboard after 2 seconds
+      Future.delayed(const Duration(seconds: 2), () {
+        if (mounted) {
+          context.go('/');
+        }
+      });
     }
   }
 
@@ -64,37 +72,43 @@ class _QuickEntryOverlayState extends ConsumerState<QuickEntryOverlay> {
   Widget build(BuildContext context) {
     if (_isSuccess) {
       final allowanceAsync = ref.watch(allowanceProvider);
-      return Scaffold(
-        backgroundColor: Colors.black,
-        body: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Icon(Icons.check_circle_outline, color: Color(0xFF10B981), size: 120),
-              const SizedBox(height: 24),
-              const Text("LOGGED", style: TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold, letterSpacing: 4)),
-              const SizedBox(height: 48),
-              allowanceAsync.when(
-                data: (allowance) {
-                  final currencyFormat = NumberFormat.simpleCurrency(locale: Platform.localeName);
-                  return Column(
-                    children: [
-                      const Text("New Balance", style: TextStyle(color: Colors.white54, fontSize: 16)),
-                      Text(
-                        currencyFormat.format(allowance),
-                        style: TextStyle(
-                          color: allowance < 0 ? const Color(0xFFEF4444) : Colors.white,
-                          fontSize: 48,
-                          fontWeight: FontWeight.bold,
+      return GestureDetector(
+        onTap: () => context.go('/'),
+        child: Scaffold(
+          backgroundColor: Colors.black,
+          body: Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(Icons.check_circle_outline, color: Color(0xFF10B981), size: 120),
+                const SizedBox(height: 24),
+                const Text("LOGGED", style: TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold, letterSpacing: 4)),
+                const SizedBox(height: 48),
+                allowanceAsync.when(
+                  data: (allowance) {
+                    final currencyFormat = NumberFormat.simpleCurrency(locale: Platform.localeName);
+                    return Column(
+                      children: [
+                        const Text("New Balance", style: TextStyle(color: Colors.white54, fontSize: 16)),
+                        Text(
+                          currencyFormat.format(allowance),
+                          style: TextStyle(
+                            color: allowance < 0 ? const Color(0xFFEF4444) : Colors.white,
+                            fontSize: 48,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
-                      ),
-                    ],
-                  );
-                },
-                loading: () => const CircularProgressIndicator(),
-                error: (_, __) => const SizedBox(),
-              ),
-            ],
+                      ],
+                    );
+                  },
+                  loading: () => const CircularProgressIndicator(),
+                  error: (_, __) => const SizedBox(),
+                ),
+                const Spacer(),
+                const Text("Tap anywhere to close", style: TextStyle(color: Colors.white38, fontSize: 14)),
+                const SizedBox(height: 32),
+              ],
+            ),
           ),
         ),
       );
@@ -109,14 +123,23 @@ class _QuickEntryOverlayState extends ConsumerState<QuickEntryOverlay> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               const Spacer(),
-              Container(
-                color: widget.isIncome ? const Color(0xFF10B981) : const Color(0xFFEF4444),
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                width: double.infinity,
-                child: Text(
-                  widget.isIncome ? "ADD INCOME" : "ADD EXPENSE",
-                  style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, letterSpacing: 2),
-                  textAlign: TextAlign.center,
+              GestureDetector(
+                onTap: _submit,
+                child: Container(
+                  color: widget.isIncome ? const Color(0xFF10B981) : const Color(0xFFEF4444),
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                  width: double.infinity,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        widget.isIncome ? "SAVE INCOME" : "SAVE EXPENSE",
+                        style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, letterSpacing: 2),
+                      ),
+                      const SizedBox(width: 8),
+                      const Icon(Icons.check, color: Colors.white, size: 20),
+                    ],
+                  ),
                 ),
               ),
               Container(
@@ -128,6 +151,7 @@ class _QuickEntryOverlayState extends ConsumerState<QuickEntryOverlay> {
                   style: Theme.of(context).textTheme.displayMedium,
                   decoration: InputDecoration(
                     hintText: widget.isIncome ? "5000 salary" : "1500 food",
+                    hintStyle: TextStyle(color: Colors.grey.withOpacity(0.4)),
                     border: InputBorder.none,
                   ),
                   onSubmitted: (_) => _submit(),
