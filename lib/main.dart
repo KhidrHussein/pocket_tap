@@ -12,22 +12,28 @@ import 'services/widget_service.dart';
 import 'screens/settings_screen.dart';
 import 'dart:async';
 
+import 'models/transaction.dart';
+import 'package:isar/isar.dart';
+
 @pragma('vm:entry-point')
 FutureOr<void> backgroundCallback(Uri? uri) async {
   if (uri?.scheme == 'pockettap' && uri?.host == 'entry') {
     final type = uri?.queryParameters['type'];
     final amount = type == 'income' ? 10.0 : -10.0;
     
-    // Using ProviderContainer to interact with Riverpod in a background isolate
     final container = ProviderContainer();
-    final db = container.read(databaseProvider);
-    await db.init();
-    await db.addTransaction(amount: amount.abs(), isIncome: amount > 0, date: DateTime.now(), tag: 'Quick Widget Entry');
+    final isar = await container.read(isarProvider.future);
     
-    // The background worker cannot easily read the allowanceProvider due to Riverpod scope. 
-    // We update the widget via service.
-    // In a real app we'd fetch the allowance from DB and calculate it here.
-    // For simplicity, we just trigger a widget update with a default value.
+    final tx = Transaction()
+      ..amount = amount.abs()
+      ..isIncome = amount > 0
+      ..date = DateTime.now()
+      ..tag = 'Quick Widget Entry';
+      
+    await isar.writeTxn(() async {
+      await isar.transactions.put(tx);
+    });
+    
     await HomeWidget.updateWidget(name: 'PocketTapWidget');
   }
 }

@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/database_provider.dart';
+import '../models/user_config.dart';
 import 'package:go_router/go_router.dart';
+import 'package:isar/isar.dart';
 
 class SettingsScreen extends ConsumerStatefulWidget {
   const SettingsScreen({super.key});
@@ -51,8 +53,18 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 onPressed: () async {
                   final amount = double.tryParse(_budgetController.text) ?? 0.0;
                   if (amount > 0) {
-                    final db = ref.read(databaseProvider);
-                    await db.saveConfig(monthlyBudget: amount, cycleStartDate: DateTime.now());
+                    final isar = await ref.read(isarProvider.future);
+                    var config = await isar.userConfigs.where().findFirst();
+                    if (config == null) {
+                      config = UserConfig()..resetDay = 1..isOnboarded = true;
+                    }
+                    config.monthlyBudget = amount;
+                    
+                    await isar.writeTxn(() async {
+                      await isar.userConfigs.put(config!);
+                    });
+                    
+                    ref.invalidate(userConfigProvider);
                     if (context.mounted) {
                       context.pop();
                       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Settings Saved")));
