@@ -6,6 +6,7 @@ import '../providers/database_provider.dart';
 import '../providers/allowance_provider.dart';
 import 'package:go_router/go_router.dart';
 import '../models/transaction.dart';
+import '../models/user_config.dart';
 import 'dart:ui';
 
 class HomeLedgerScreen extends ConsumerWidget {
