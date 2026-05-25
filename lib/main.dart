@@ -107,7 +107,8 @@ class _PocketTapAppState extends ConsumerState<PocketTapApp> {
     HomeWidget.registerInteractivityCallback(backgroundCallback);
     HomeWidget.widgetClicked.listen((Uri? uri) {
       if (uri != null && uri.scheme == 'pockettap') {
-        ref.read(routerProvider).push(uri.path + '?' + uri.query);
+        final path = uri.host.isNotEmpty ? '/${uri.host}' : uri.path;
+        ref.read(routerProvider).push('$path?${uri.query}');
       }
     });
 
