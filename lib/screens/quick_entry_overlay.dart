@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'dart:ui';
 import '../models/transaction.dart';
 import '../providers/database_provider.dart';
+import '../providers/allowance_provider.dart';
+import 'dart:io';
+import 'package:intl/intl.dart';
+import 'package:home_widget/home_widget.dart';
+import '../services/widget_service.dart';
 
 class QuickEntryOverlay extends ConsumerStatefulWidget {
   final bool isIncome;
@@ -15,11 +19,11 @@ class QuickEntryOverlay extends ConsumerStatefulWidget {
 
 class _QuickEntryOverlayState extends ConsumerState<QuickEntryOverlay> {
   final TextEditingController _controller = TextEditingController();
+  bool _isSuccess = false;
 
   void _submit() async {
     final text = _controller.text.trim();
     if (text.isEmpty) {
-      SystemNavigator.pop();
       return;
     }
 
@@ -42,45 +46,95 @@ class _QuickEntryOverlayState extends ConsumerState<QuickEntryOverlay> {
       });
 
       ref.invalidate(transactionsProvider);
+      
+      // Update widget manually here just to be safe
+      final config = await ref.read(userConfigProvider.future);
+      final allowance = await ref.read(allowanceProvider.future);
+      if (config != null) {
+         await WidgetService.updateWidget(allowance, config.monthlyBudget / 30);
+      }
+      
+      setState(() {
+        _isSuccess = true;
+      });
     }
-
-    SystemNavigator.pop();
   }
 
   @override
   Widget build(BuildContext context) {
+    if (_isSuccess) {
+      final allowanceAsync = ref.watch(allowanceProvider);
+      return Scaffold(
+        backgroundColor: Colors.black,
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(Icons.check_circle_outline, color: Color(0xFF10B981), size: 120),
+              const SizedBox(height: 24),
+              const Text("LOGGED", style: TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold, letterSpacing: 4)),
+              const SizedBox(height: 48),
+              allowanceAsync.when(
+                data: (allowance) {
+                  final currencyFormat = NumberFormat.simpleCurrency(locale: Platform.localeName);
+                  return Column(
+                    children: [
+                      const Text("New Balance", style: TextStyle(color: Colors.white54, fontSize: 16)),
+                      Text(
+                        currencyFormat.format(allowance),
+                        style: TextStyle(
+                          color: allowance < 0 ? const Color(0xFFEF4444) : Colors.white,
+                          fontSize: 48,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  );
+                },
+                loading: () => const CircularProgressIndicator(),
+                error: (_, __) => const SizedBox(),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
     return Scaffold(
-      backgroundColor: Colors.black.withOpacity(0.6), // Translucent background
+      backgroundColor: Colors.black.withOpacity(0.8), // Translucent background
       body: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+        filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
         child: SafeArea(
           child: Column(
-            mainAxisAlignment: MainAxisAlignment.end,
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
+              const Spacer(),
               Container(
                 color: widget.isIncome ? const Color(0xFF10B981) : const Color(0xFFEF4444),
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                 width: double.infinity,
                 child: Text(
                   widget.isIncome ? "ADD INCOME" : "ADD EXPENSE",
-                  style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                  style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, letterSpacing: 2),
                   textAlign: TextAlign.center,
                 ),
               ),
               Container(
                 color: Theme.of(context).scaffoldBackgroundColor,
-                padding: const EdgeInsets.all(16),
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
                 child: TextField(
                   controller: _controller,
                   autofocus: true,
                   style: Theme.of(context).textTheme.displayMedium,
-                  decoration: const InputDecoration(
-                    hintText: "4000 food",
+                  decoration: InputDecoration(
+                    hintText: widget.isIncome ? "5000 salary" : "1500 food",
                     border: InputBorder.none,
                   ),
                   onSubmitted: (_) => _submit(),
+                  keyboardType: TextInputType.text,
                 ),
               ),
+              const Spacer(),
             ],
           ),
         ),
