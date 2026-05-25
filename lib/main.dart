@@ -139,9 +139,11 @@ class _PocketTapAppState extends ConsumerState<PocketTapApp> {
 
     _linkSubscription = _appLinks.uriLinkStream.listen((uri) {
       if (uri.scheme == 'pockettap' && uri.host == 'entry') {
-        if (mounted) {
-          ref.read(routerProvider).push('/entry?${uri.query}');
-        }
+        Future.delayed(const Duration(milliseconds: 100), () {
+          if (mounted) {
+            ref.read(routerProvider).push('/entry?${uri.query}');
+          }
+        });
       }
     });
   }
