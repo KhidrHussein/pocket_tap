@@ -11,6 +11,7 @@ import 'providers/allowance_provider.dart';
 import 'services/widget_service.dart';
 import 'screens/settings_screen.dart';
 import 'dart:async';
+import 'package:app_links/app_links.dart';
 
 import 'models/transaction.dart';
 import 'package:isar/isar.dart';
@@ -56,13 +57,6 @@ void main() async {
 final routerProvider = Provider<GoRouter>((ref) {
   return GoRouter(
     initialLocation: '/',
-    redirect: (context, state) {
-      if (state.uri.scheme == 'pockettap' && state.uri.host == 'entry') {
-        // Map the custom scheme directly to the correct path natively
-        return '/entry?${state.uri.query}';
-      }
-      return null;
-    },
     routes: [
       GoRoute(
         path: '/',
@@ -108,18 +102,16 @@ class PocketTapApp extends ConsumerStatefulWidget {
 }
 
 class _PocketTapAppState extends ConsumerState<PocketTapApp> {
+  late AppLinks _appLinks;
+  StreamSubscription<Uri>? _linkSubscription;
+
   @override
   void initState() {
     super.initState();
     HomeWidget.registerInteractivityCallback(backgroundCallback);
-
-    HomeWidget.initiallyLaunchedFromHomeWidget().then((Uri? uri) {
-      if (uri != null && uri.scheme == 'pockettap' && uri.host == 'entry') {
-        Future.delayed(const Duration(milliseconds: 500), () {
-          ref.read(routerProvider).push('/entry?${uri.query}');
-        });
-      }
-    });
+    
+    _appLinks = AppLinks();
+    _initDeepLinks();
 
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       final config = await ref.read(userConfigProvider.future);
@@ -129,6 +121,35 @@ class _PocketTapAppState extends ConsumerState<PocketTapApp> {
         WidgetService.updateWidget(allowance, dailyBudget);
       }
     });
+  }
+
+  Future<void> _initDeepLinks() async {
+    try {
+      final initialUri = await _appLinks.getInitialLink();
+      if (initialUri != null && initialUri.scheme == 'pockettap' && initialUri.host == 'entry') {
+        Future.delayed(const Duration(milliseconds: 500), () {
+          if (mounted) {
+            ref.read(routerProvider).push('/entry?${initialUri.query}');
+          }
+        });
+      }
+    } catch (e) {
+      debugPrint("Failed to get initial link: $e");
+    }
+
+    _linkSubscription = _appLinks.uriLinkStream.listen((uri) {
+      if (uri.scheme == 'pockettap' && uri.host == 'entry') {
+        if (mounted) {
+          ref.read(routerProvider).push('/entry?${uri.query}');
+        }
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _linkSubscription?.cancel();
+    super.dispose();
   }
 
   @override

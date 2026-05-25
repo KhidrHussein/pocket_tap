@@ -80,6 +80,24 @@ class HomeLedgerScreen extends ConsumerWidget {
           )
         ],
       ),
+      floatingActionButton: Row(
+        mainAxisAlignment: MainAxisAlignment.end,
+        children: [
+          FloatingActionButton.small(
+            heroTag: 'dash_expense',
+            backgroundColor: const Color(0xFFEF4444),
+            onPressed: () => context.push('/entry?type=expense'),
+            child: const Icon(Icons.remove, color: Colors.white),
+          ),
+          const SizedBox(width: 8),
+          FloatingActionButton.small(
+            heroTag: 'dash_income',
+            backgroundColor: const Color(0xFF10B981),
+            onPressed: () => context.push('/entry?type=income'),
+            child: const Icon(Icons.add, color: Colors.white),
+          ),
+        ],
+      ),
       body: Column(
         children: [
           // Top Header
