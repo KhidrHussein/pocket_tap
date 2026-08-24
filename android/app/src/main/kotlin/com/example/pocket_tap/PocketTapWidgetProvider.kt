@@ -18,7 +18,7 @@ class PocketTapWidgetProvider : HomeWidgetProvider() {
         appWidgetIds.forEach { widgetId ->
             val views = RemoteViews(context.packageName, R.layout.widget_layout).apply {
                 val balance = widgetData.getString("balance", "₦0.00")
-                val burnColor = widgetData.getInt("burn_color", android.graphics.Color.DKGRAY)
+                val burnColor = (widgetData.all["burn_color"] as? Number)?.toInt() ?: android.graphics.Color.DKGRAY
                 val isNegative = widgetData.getBoolean("is_negative", false)
 
                 setTextViewText(R.id.tv_balance, balance)

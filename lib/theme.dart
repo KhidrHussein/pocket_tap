@@ -1,7 +1,5 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
-
 class PocketTapTheme {
   static ThemeData get darkTheme {
     return ThemeData(
@@ -14,20 +12,24 @@ class PocketTapTheme {
         secondary: Colors.white,
         surface: Colors.black,
       ),
-      textTheme: GoogleFonts.spaceGroteskTextTheme(ThemeData.dark().textTheme).copyWith(
-        displayLarge: GoogleFonts.spaceGrotesk(
+      fontFamily: 'SpaceGrotesk',
+      textTheme: ThemeData.dark().textTheme.copyWith(
+        displayLarge: const TextStyle(
+          fontFamily: 'SpaceGrotesk',
           fontSize: 48,
           fontWeight: FontWeight.bold,
           color: Colors.white,
-          fontFeatures: const [FontFeature.tabularFigures()],
+          fontFeatures: [FontFeature.tabularFigures()],
         ),
-        displayMedium: GoogleFonts.spaceGrotesk(
+        displayMedium: const TextStyle(
+          fontFamily: 'SpaceGrotesk',
           fontSize: 32,
           fontWeight: FontWeight.bold,
           color: Colors.white,
-          fontFeatures: const [FontFeature.tabularFigures()],
+          fontFeatures: [FontFeature.tabularFigures()],
         ),
-        bodyLarge: GoogleFonts.spaceGrotesk(
+        bodyLarge: const TextStyle(
+          fontFamily: 'SpaceGrotesk',
           fontSize: 18,
           color: Colors.white,
         ),
@@ -38,7 +40,8 @@ class PocketTapTheme {
           foregroundColor: Colors.black,
           shape: const BeveledRectangleBorder(),
           minimumSize: const Size(double.infinity, 60),
-          textStyle: GoogleFonts.spaceGrotesk(
+          textStyle: const TextStyle(
+            fontFamily: 'SpaceGrotesk',
             fontSize: 20,
             fontWeight: FontWeight.bold,
           ),
@@ -58,20 +61,24 @@ class PocketTapTheme {
         secondary: Colors.black,
         surface: Colors.white,
       ),
-      textTheme: GoogleFonts.spaceGroteskTextTheme(ThemeData.light().textTheme).copyWith(
-        displayLarge: GoogleFonts.spaceGrotesk(
+      fontFamily: 'SpaceGrotesk',
+      textTheme: ThemeData.light().textTheme.copyWith(
+        displayLarge: const TextStyle(
+          fontFamily: 'SpaceGrotesk',
           fontSize: 48,
           fontWeight: FontWeight.bold,
           color: Colors.black,
-          fontFeatures: const [FontFeature.tabularFigures()],
+          fontFeatures: [FontFeature.tabularFigures()],
         ),
-        displayMedium: GoogleFonts.spaceGrotesk(
+        displayMedium: const TextStyle(
+          fontFamily: 'SpaceGrotesk',
           fontSize: 32,
           fontWeight: FontWeight.bold,
           color: Colors.black,
-          fontFeatures: const [FontFeature.tabularFigures()],
+          fontFeatures: [FontFeature.tabularFigures()],
         ),
-        bodyLarge: GoogleFonts.spaceGrotesk(
+        bodyLarge: const TextStyle(
+          fontFamily: 'SpaceGrotesk',
           fontSize: 18,
           color: Colors.black,
         ),
@@ -82,7 +89,8 @@ class PocketTapTheme {
           foregroundColor: Colors.white,
           shape: const BeveledRectangleBorder(),
           minimumSize: const Size(double.infinity, 60),
-          textStyle: GoogleFonts.spaceGrotesk(
+          textStyle: const TextStyle(
+            fontFamily: 'SpaceGrotesk',
             fontSize: 20,
             fontWeight: FontWeight.bold,
           ),
